@@ -1,0 +1,21 @@
+Problem 9. Programming assignment
+
+1. How many values can the random vector X... take, i.e. how many different 28x28 binary images are there?
+
+There are 2^(28x28) = 2^784 binary images.
+
+2. How many parameters would you need to specify an arbitrary probability distribution over all possible 28x28 binary images?
+
+You would need 2^(28x28) - 1 = 2^784 - 1 parameters to specify an arbitrary probability distribution over all possible 28x28 images.
+
+3. How many parameters do you need to specify the Bayesian network in Figure 1?
+
+The joint probability distribution for the Bayesian network in Figure 1 can be written as:
+P(Z1)*P(Z2)*P(X1|Z1,Z2)*P(X2|Z1,Z2)*...*P(X784|Z1,Z2)
+
+The conditional terms have 3 parameters each, and there are 784 of them. So the total
+number of parameters needed is 784*3+2 = 2354 
+
+4. None
+
+5. What is the intuitive role of the Z1,Z2 variables in this model?

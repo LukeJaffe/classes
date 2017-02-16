@@ -1,0 +1,3 @@
+Problem 8: Towards inference in Bayesian networks
+
+1. 

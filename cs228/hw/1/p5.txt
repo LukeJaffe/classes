@@ -1,0 +1,16 @@
+1.
+2.
+3.
+a.
+b.
+c. d-sep({A,B};{G,H}|F)
+Is there any active path between {A,G}, {A,H}, {B,G}, {B,H} given F
+There are 3 ways to get to G from A or B, all include F:
+C->F->G: blocked
+D->F->G: blocked
+H->F->G: blocked
+
+There is an active path from B->H|F
+B->E->H: cascade (not blocked)
+
+Since there is an active path from B->H, this is not d-sep
