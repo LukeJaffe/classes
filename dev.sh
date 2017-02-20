@@ -18,7 +18,7 @@ docker run -it --rm \
  --user=username \
  -w /home/username/work/cs228/hw/3/pa3 \
  --privileged \
- sf:hw /bin/bash
+ classes:python /bin/bash
 
 
 # -e QT_X11_NO_FONTCONFIG=1 \

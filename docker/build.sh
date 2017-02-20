@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t sf:hw .
+docker build -t classes:python .
