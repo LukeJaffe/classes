@@ -189,7 +189,7 @@ def run_loopy_bp(y, H, p, iterations, checkpoint=None):
 
     # Show number of mistakes in original
     h_start = len(y) - np.count_nonzero(y.ravel()==yhat.ravel())
-    print "Iter {}: Hamming={}".format(0, h_start)
+    print "Iter {}: hamming={}".format(0, h_start)
 
     # Create the cluster graph (clique tree)
     CG = constructClusterGraph(yhat, H, p)
@@ -225,11 +225,12 @@ def do_part_c(iterations=50, p=0.05):
     # Make bar plot
     plt.figure(figsize=(7,5), dpi=150)
     plt.bar(range(len(p1)), p1, color="red") 
-    plt.title("Estimated P(bit=1) for Codeword Bits")
+    plt.title("Estimated P(bit=1) for Codeword Bits (Iteration {})".format(
+        iterations))
     plt.xlabel("bit #")
     plt.ylabel("P(bit=1)")
-    plt.axis([0, len(p1), 0.0, np.max(p1)*2])
-    plt.savefig('p5c')
+    plt.axis([0, len(p1), 0, 1.0])
+    plt.savefig('p5c_{}'.format(iterations))
 
     ##############################################################
 
@@ -318,7 +319,7 @@ def do_part_fg(p, part=None):
     plt.imshow(recovered)
 
     # Show number of mistakes in original
-    print "Iter {}: Hamming={}".format(0,
+    print "Iter {}: hamming={}".format(0,
         len(y) - np.count_nonzero(y.ravel()==yhat.ravel())
     )
 
@@ -344,8 +345,9 @@ def do_part_fg(p, part=None):
     # Save and show the plot
     plt.savefig('p5{}'.format(part))
 
+# Uncomment any/all parts to run them
 print('Doing part (a): Should see 0.0, 0.0, >0.0')
-do_part_a()
+#do_part_a()
 print('Doing part (c)')
 #do_part_c()
 print('Doing part (d)')
