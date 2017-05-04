@@ -1,0 +1,7 @@
+# class-related files
+cs228/final
+cs228/textbook
+
+# misc files
+*.swp
+*.pyc
