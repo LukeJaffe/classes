@@ -1,3 +1,3 @@
 #!/bin/bash
 
-jupyter notebook
+jupyter notebook --allow-root
