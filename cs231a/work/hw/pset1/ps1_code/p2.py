@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # CS231A Homework 1, Problem 2
 import numpy as np
 
@@ -27,8 +29,24 @@ Returns:
     camera_matrix - The calibrated camera matrix (3x4 matrix)
 '''
 def compute_camera_matrix(real_XY, front_image, back_image):
-    # TODO: Fill in this code
-    pass
+    # Create real point matrix
+    front_z = np.zeros(front_image.shape[0])[:, np.newaxis]
+    back_z = 150*np.ones(front_image.shape[0])[:, np.newaxis]
+    both_z = np.concatenate([front_z, back_z], axis=0)
+    twice_real_XY = np.concatenate([real_XY, real_XY], axis=0)
+    real_ones = np.ones(twice_real_XY.shape[0])[:, np.newaxis]
+    A = np.concatenate([twice_real_XY, both_z, real_ones], axis=1)
+
+    # Create projected point matrix
+    both_image = np.concatenate([front_image, back_image], axis=0)
+    image_ones = np.ones(both_image.shape[0])[:, np.newaxis]
+    b = np.concatenate([both_image, image_ones], axis=1)
+
+    # Solve with least-squares
+    xt, _, _, _ = np.linalg.lstsq(A, b)
+    x = xt.T
+
+    return x 
 
 '''
 RMS_ERROR
@@ -42,8 +60,25 @@ Returns:
                 into the images
 '''
 def rms_error(camera_matrix, real_XY, front_image, back_image):
-    #TODO: Fill in this code
-    pass
+    # Create real point matrix
+    front_z = np.zeros(front_image.shape[0])[:, np.newaxis]
+    back_z = 150*np.ones(front_image.shape[0])[:, np.newaxis]
+    both_z = np.concatenate([front_z, back_z], axis=0)
+    twice_real_XY = np.concatenate([real_XY, real_XY], axis=0)
+    real_ones = np.ones(twice_real_XY.shape[0])[:, np.newaxis]
+    A = np.concatenate([twice_real_XY, both_z, real_ones], axis=1)
+
+    # Create projected point matrix
+    real_proj = np.concatenate([front_image, back_image], axis=0)
+
+    # Calculate corner locations
+    calc_b = np.dot(A, camera_matrix.T)
+    calc_proj = calc_b[:, :2]
+
+    # Compute RMS error
+    rms_error = np.sqrt(np.sum((calc_proj - real_proj)**2)/real_proj.shape[0])
+
+    return rms_error
 
 if __name__ == '__main__':
     # Loading the example coordinates setup
