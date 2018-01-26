@@ -137,6 +137,7 @@ def compute_rotation_matrix_between_cameras(vanishing_points1, vanishing_points2
     va = np.concatenate([pa1, pa2, pa3], axis=1).T
     vb = np.concatenate([pb1, pb2, pb3], axis=1).T
 
+    # Add ones to vanishing points 
     one_row = np.ones((va.shape[0], 1))
     va = np.concatenate([va, one_row], axis=1)
     vb = np.concatenate([vb, one_row], axis=1)
@@ -147,12 +148,20 @@ def compute_rotation_matrix_between_cameras(vanishing_points1, vanishing_points2
     dbu = K_inv.dot(vb.T)
 
     # Normalize to unit vectors
-    da = dau/np.linalg.norm(dau)
-    db = dbu/np.linalg.norm(dbu)
+    da = dau/np.linalg.norm(dau, axis=0)
+    db = dbu/np.linalg.norm(dbu, axis=0)
 
     # Solve for rotation
     da_inv = np.linalg.pinv(da)
     R = np.dot(db, da_inv)
+
+    # Check
+    print('\nCheck R:')
+    a1, a2, a3 = da.T
+    b1, b2, b3 = db.T
+    print(b1, np.dot(R, a1)) 
+    print(b2, np.dot(R, a2)) 
+    print(b3, np.dot(R, a3)) 
 
     return R
 

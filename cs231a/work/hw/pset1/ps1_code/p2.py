@@ -19,16 +19,16 @@ front_image will contain [137, 44] and the matching row in back_image will conta
 [148, 22]
 '''
 
-'''
-COMPUTE_CAMERA_MATRIX
-Arguments:
-     real_XY - Each row corresponds to an actual point on the 2D plane
-     front_image - Each row is the pixel location in the front image where Z=0
-     back_image - Each row is the pixel location in the back image where Z=150
-Returns:
-    camera_matrix - The calibrated camera matrix (3x4 matrix)
-'''
 def compute_camera_matrix(real_XY, front_image, back_image):
+    '''
+    COMPUTE_CAMERA_MATRIX
+    Arguments:
+         real_XY - Each row corresponds to an actual point on the 2D plane
+         front_image - Each row is the pixel location in the front image where Z=0
+         back_image - Each row is the pixel location in the back image where Z=150
+    Returns:
+        camera_matrix - The calibrated camera matrix (3x4 matrix)
+    '''
     # Create real point matrix
     front_z = np.zeros(front_image.shape[0])[:, np.newaxis]
     back_z = 150*np.ones(front_image.shape[0])[:, np.newaxis]
@@ -44,22 +44,22 @@ def compute_camera_matrix(real_XY, front_image, back_image):
 
     # Solve with least-squares
     xt, _, _, _ = np.linalg.lstsq(A, b)
-    x = xt.T
+    camera_matrix = xt.T
 
-    return x 
+    return camera_matrix
 
-'''
-RMS_ERROR
-Arguments:
-     camera_matrix - The camera matrix of the calibrated camera
-     real_XY - Each row corresponds to an actual point on the 2D plane
-     front_image - Each row is the pixel location in the front image where Z=0
-     back_image - Each row is the pixel location in the back image where Z=150
-Returns:
-    rms_error - The root mean square error of reprojecting the points back
-                into the images
-'''
 def rms_error(camera_matrix, real_XY, front_image, back_image):
+    '''
+    RMS_ERROR
+    Arguments:
+         camera_matrix - The camera matrix of the calibrated camera
+         real_XY - Each row corresponds to an actual point on the 2D plane
+         front_image - Each row is the pixel location in the front image where Z=0
+         back_image - Each row is the pixel location in the back image where Z=150
+    Returns:
+        rms_error - The root mean square error of reprojecting the points back
+                    into the images
+    '''
     # Create real point matrix
     front_z = np.zeros(front_image.shape[0])[:, np.newaxis]
     back_z = 150*np.ones(front_image.shape[0])[:, np.newaxis]
