@@ -5,18 +5,18 @@ import numpy as np
 from utils import mat2euler
 import math
 
-'''
-COMPUTE_VANISHING_POINTS
-Arguments:
-    points - a list of all the points where each row is (x, y). Generally,
-            it will contain four points: two for each parallel line.
-            You can use any convention you'd like, but our solution uses the
-            first two rows as points on the same line and the last
-            two rows as points on the same line.
-Returns:
-    vanishing_point - the pixel location of the vanishing point
-'''
 def compute_vanishing_point(points):
+    '''
+    COMPUTE_VANISHING_POINTS
+    Arguments:
+        points - a list of all the points where each row is (x, y). Generally,
+                it will contain four points: two for each parallel line.
+                You can use any convention you'd like, but our solution uses the
+                first two rows as points on the same line and the last
+                two rows as points on the same line.
+    Returns:
+        vanishing_point - the pixel location of the vanishing point
+    '''
     # Unpack points
     (k1x, k1y), (k2x, k2y), (l1x, l1y), (l2x, l2y) = points
 
@@ -36,34 +36,40 @@ def compute_vanishing_point(points):
 
     return vx, vy
 
-'''
-COMPUTE_K_FROM_VANISHING_POINTS
-Arguments:
-    vanishing_points - a list of vanishing points
-
-Returns:
-    K - the intrinsic camera matrix (3x3 matrix)
-'''
 def compute_K_from_vanishing_points(vanishing_points):
-    # Compute w using SVD
-    print(vanishing_points)
+    '''
+    COMPUTE_K_FROM_VANISHING_POINTS
+    Arguments:
+        vanishing_points - a list of vanishing points
+
+    Returns:
+        K - the intrinsic camera matrix (3x3 matrix)
+    '''
+    ### Compute w using SVD
     vp = vanishing_points
+    # Construct system of equations using vanishing points
     A = np.array([
         [vp[0][0]*vp[1][0]+vp[0][1]*vp[1][1], vp[0][0]+vp[1][0], vp[0][1]+vp[1][1], 1],
         [vp[0][0]*vp[2][0]+vp[0][1]*vp[2][1], vp[0][0]+vp[2][0], vp[0][1]+vp[2][1], 1],
         [vp[1][0]*vp[2][0]+vp[1][1]*vp[2][1], vp[1][0]+vp[2][0], vp[1][1]+vp[2][1], 1],
     ])
+    # Perform SVD on system of equations
     u, s, vt = np.linalg.svd(A, full_matrices=True)
-    w = vt.T[:, 3]
-    null = np.dot(A, w)
+    # Solution w to Aw = 0 is last row of matrix V
+    w = vt.T[:, -1]
+
+    # Test w
     print('\nTest SVD:')
+    null = np.dot(A, w)
     print('null:', null)
-    #print(w)
+
+    # Construct omega (W) using the elements of w
     W = np.array([
         [w[0], 0,    w[1]],
         [0,    w[0], w[2]],
         [w[1], w[2], w[3]]
     ])
+
     # Test omega
     print('\nTest omega:')
     vp1 = np.array(vp[0]+(1,))[:, np.newaxis]
@@ -72,27 +78,27 @@ def compute_K_from_vanishing_points(vanishing_points):
     print('null1:', np.dot(np.dot(vp1.T, W), vp2))
     print('null2:', np.dot(np.dot(vp1.T, W), vp3))
     print('null3:', np.dot(np.dot(vp2.T, W), vp3))
-    #print(W)
-    # Compute K from w using cholesky factorization
+
+    # Compute K inverse from omega using cholesky factorization
     C = np.linalg.cholesky(W)
-    # Take the pseudo-inverse to get K
+    # Take the (pseudo-)inverse to get K
     K = np.linalg.pinv(C.T)
     # Normalize K
     K /= K[-1, -1]
 
     return K
 
-'''
-COMPUTE_K_FROM_VANISHING_POINTS
-Arguments:
-    vanishing_pair1 - a list of a pair of vanishing points computed from lines within the same plane
-    vanishing_pair2 - a list of another pair of vanishing points from a different plane than vanishing_pair1
-    K - the camera matrix used to take both images
-
-Returns:
-    angle - the angle in degrees between the planes which the vanishing point pair comes from2
-'''
 def compute_angle_between_planes(vanishing_pair1, vanishing_pair2, K):
+    '''
+    COMPUTE_K_FROM_VANISHING_POINTS
+    Arguments:
+        vanishing_pair1 - a list of a pair of vanishing points computed from lines within the same plane
+        vanishing_pair2 - a list of another pair of vanishing points from a different plane than vanishing_pair1
+        K - the camera matrix used to take both images
+
+    Returns:
+        angle - the angle in degrees between the planes which the vanishing point pair comes from2
+    '''
     # Compute omega inverse using camera matrix
     W_inv = np.dot(K, K.T) 
 
@@ -118,17 +124,17 @@ def compute_angle_between_planes(vanishing_pair1, vanishing_pair2, K):
     return theta_deg
 
 
-'''
-COMPUTE_K_FROM_VANISHING_POINTS
-Arguments:
-    vanishing_points1 - a list of vanishing points in image 1
-    vanishing_points2 - a list of vanishing points in image 2
-    K - the camera matrix used to take both images
-
-Returns:
-    R - the rotation matrix between camera 1 and camera 2
-'''
 def compute_rotation_matrix_between_cameras(vanishing_points1, vanishing_points2, K):
+    '''
+    COMPUTE_K_FROM_VANISHING_POINTS
+    Arguments:
+        vanishing_points1 - a list of vanishing points in image 1
+        vanishing_points2 - a list of vanishing points in image 2
+        K - the camera matrix used to take both images
+
+    Returns:
+        R - the rotation matrix between camera 1 and camera 2
+    '''
     # Unpack vanishing points
     pa1, pa2, pa3 = vanishing_points1[:, :, np.newaxis]
     pb1, pb2, pb3 = vanishing_points2[:, :, np.newaxis]
@@ -165,50 +171,6 @@ def compute_rotation_matrix_between_cameras(vanishing_points1, vanishing_points2
 
     return R
 
-def compute_rotation_matrix_between_camerasx(vanishing_pts1, vanishing_pts2, K):
-    """Compute rotation matrix between two cameras given their vanishing points.
-    Args:
-        vanishing_pts1: A list of vanishing points in image 1.
-        vanishing_pts2: A list of vanishing points in image 2.
-        K: The camera matrix used to take both images.
-    Returns:
-        R: The rotation matrix between camera 1 and camera 2.
-    """
-    # a set of vanishing points on one image
-    v1 = np.hstack((vanishing_pts1[0], 1))
-    v2 = np.hstack((vanishing_pts1[1], 1))
-    v3 = np.hstack((vanishing_pts1[2], 1))
-
-    # another set of vanishing points on the other image
-    v4 = np.hstack((vanishing_pts2[0], 1))
-    v5 = np.hstack((vanishing_pts2[1], 1))
-    v6= np.hstack((vanishing_pts2[2], 1))
-
-    # first image vanishing points directions
-    d1 = np.linalg.inv(K).dot(v1) / np.linalg.norm(np.linalg.inv(K).dot(v1))
-    d2 = np.linalg.inv(K).dot(v2) / np.linalg.norm(np.linalg.inv(K).dot(v2))
-    d3 = np.linalg.inv(K).dot(v3) / np.linalg.norm(np.linalg.inv(K).dot(v3))
-
-    # second image vanishing points directions
-    dPrime1 = np.linalg.inv(K).dot(v4) / np.linalg.norm(np.linalg.inv(K).dot(v4))
-    dPrime2 = np.linalg.inv(K).dot(v5) / np.linalg.norm(np.linalg.inv(K).dot(v5))
-    dPrime3 = np.linalg.inv(K).dot(v6) / np.linalg.norm(np.linalg.inv(K).dot(v6))
-
-    di = np.zeros((3, 3))
-    di[:, 0] = d1.T
-    di[:, 1] = d2.T
-    di[:, 2] = d3.T
-
-    diPrime = np.zeros((3, 3))
-    diPrime[:, 0] = dPrime1.T
-    diPrime[:, 1] = dPrime2.T
-    diPrime[:, 2] = dPrime3.T
-
-    # find rotation matrix
-    R = diPrime.dot(np.linalg.inv(di))
-    return R
-    
-
 if __name__ == '__main__':
     # Part A: Compute vanishing points
     v1 = compute_vanishing_point(np.array([[674,1826],[2456,1060],[1094,1340],[1774,1086]]))
@@ -219,11 +181,9 @@ if __name__ == '__main__':
     v2b = compute_vanishing_point(np.array([[314,1912],[36,1578],[2060,1040],[1598,882]]))
     v3b = compute_vanishing_point(np.array([[750,1378],[714,614],[1438,1094],[1474,494]]))
 
-    """
     # Part B: Compute the camera matrix
     vanishing_points = [v1, v2, v3]
     print("Intrinsic Matrix:\n",compute_K_from_vanishing_points(vanishing_points).astype(int))
-    """
 
     K_actual = np.array([[2448.0, 0, 1253.0],[0, 2438.0, 986.0],[0,0,1.0]])
     print()
