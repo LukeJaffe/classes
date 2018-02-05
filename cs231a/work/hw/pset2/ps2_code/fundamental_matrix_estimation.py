@@ -21,7 +21,29 @@ def lls_eight_point_alg(points1, points2):
     point algorithm works
     '''
     # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    print(points1.shape)
+    A = []
+    for p1, p2 in zip(points1, points2):
+        row = np.outer(p2, p1).reshape(9)
+        A.append(row)
+    A = np.array(A)
+    _, _, V = np.linalg.svd(A)
+    f = V.T[:, -1]
+    null = A.dot(f)
+    F = f.reshape(3, 3)
+    for p1, p2 in zip(points1, points2):
+        print(p2.T.dot(F).dot(p1))
+    Up, dp, Vp = np.linalg.svd(F)
+    # Zero out last element of Dp to meet rank 2 constraint
+    dp[-1] = 0
+    Dp = np.diag(dp)
+    # Build Fp from this
+    Fp = np.dot(Up, np.dot(Dp, Vp))
+    for p1, p2 in zip(points1, points2):
+        print(p2.T.dot(Fp).dot(p1))
+    #print(points2.dot(Fp).dot(points1.T))
+
+    return Fp
 
 '''
 NORMALIZED_EIGHT_POINT_ALG  computes the fundamental matrix from matching points
@@ -92,6 +114,7 @@ if __name__ == '__main__':
         # Running the linear least squares eight point algorithm
         F_lls = lls_eight_point_alg(points1, points2)
         print "Fundamental Matrix from LLS  8-point algorithm:\n", F_lls
+        break
         print "Distance to lines in image 1 for LLS:", \
             compute_distance_to_epipolar_lines(points1, points2, F_lls)
         print "Distance to lines in image 2 for LLS:", \
