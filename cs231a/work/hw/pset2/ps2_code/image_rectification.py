@@ -1,39 +1,71 @@
+#!/usr/bin/env python2
+
 import numpy as np
 import matplotlib.pyplot as plt
 from fundamental_matrix_estimation import *
 
-'''
-COMPUTE_EPIPOLE computes the epipole in homogenous coordinates
-given matching points in two images and the fundamental matrix
-Arguments:
-    points1 - N points in the first image that match with points2
-    points2 - N points in the second image that match with points1
-    F - the Fundamental matrix such that (points1)^T * F * points2 = 0
-
-    Both points1 and points2 are from the get_data_from_txt_file() method
-Returns:
-    epipole - the homogenous coordinates [x y 1] of the epipole in the image
-'''
 def compute_epipole(points1, points2, F):
-    # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    '''
+    COMPUTE_EPIPOLE computes the epipole in homogenous coordinates
+    given matching points in two images and the fundamental matrix
+    Arguments:
+        points1 - N points in the first image that match with points2
+        points2 - N points in the second image that match with points1
+        F - the Fundamental matrix such that (points1)^T * F * points2 = 0
+
+        Both points1 and points2 are from the get_data_from_txt_file() method
+    Returns:
+        epipole - the homogenous coordinates [x y 1] of the epipole in the image
+    '''
+    # Do SVD on F
+    U, s, V = np.linalg.svd(F) 
+    # Take last column of V to get solution to Fe=0
+    e = V.T[:, -1]
+
+    return e
     
-'''
-COMPUTE_MATCHING_HOMOGRAPHIES determines homographies H1 and H2 such that they
-rectify a pair of images
-Arguments:
-    e2 - the second epipole
-    F - the Fundamental matrix
-    im2 - the second image
-    points1 - N points in the first image that match with points2
-    points2 - N points in the second image that match with points1
-Returns:
-    H1 - the homography associated with the first image
-    H2 - the homography associated with the second image
-'''
 def compute_matching_homographies(e2, F, im2, points1, points2):
-    # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    '''
+    COMPUTE_MATCHING_HOMOGRAPHIES determines homographies H1 and H2 such that they
+    rectify a pair of images
+    Arguments:
+        e2 - the second epipole
+        F - the Fundamental matrix
+        im2 - the second image
+        points1 - N points in the first image that match with points2
+        points2 - N points in the second image that match with points1
+    Returns:
+        H1 - the homography associated with the first image
+        H2 - the homography associated with the second image
+    '''
+    w, h = im2.shape
+    # Compute translation matrix
+    T = np.array([
+        [1, 0, -w/2],
+        [0, 1, -h/2],
+        [0, 0, 1]
+    ])
+    # Compute rotation matrix
+    if e2[0] >= 0:
+        a = 1
+    else:
+        a = -1
+    R = np.array([
+        [a*(e2[0]/np.sqrt(np.sum(e2**2))), a*(e2[1]/np.sqrt(np.sum(e2**2))), 0], 
+        [a*(e2[1]/np.sqrt(np.sum(e2**2))), a*(e2[0]/np.sqrt(np.sum(e2**2))), 0], 
+        [0, 0, 1]
+    ])
+    # Compute point at infinity transform
+    f = 1
+    G = np.array([
+        [1,    0, 0],
+        [0,    1, 0],
+        [-1/f, 0, 1]
+    ])
+    # Compute H2
+    H2 = np.linalg.pinv(T).dot(G).dot(R).dot(T)
+
+    print H2
 
 if __name__ == '__main__':
     # Read in the data
@@ -55,6 +87,7 @@ if __name__ == '__main__':
     print "H1:\n", H1
     print
     print "H2:\n", H2
+    import sys; sys.exit()
 
     # Transforming the images by the homographies
     new_points1 = H1.dot(points1.T)
