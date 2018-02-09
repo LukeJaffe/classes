@@ -137,18 +137,18 @@ def plot_epipolar_lines_on_images(points1, points2, im1, im2, F, im_set=None, al
         plt.subplot(int('12{}'.format(i)))
         plt.imshow(im, cmap='gray')
         plt.axis('off')
-        plt.xlim(0, 512)
-        plt.ylim(512, 0)
+        plt.xlim(0, im.shape[1])
+        plt.ylim(im.shape[0], 0)
         # Solve for epipolar points
         # l = [a, b, c] where: ax + by + c = 0
         el = np.dot(points2, F)
         # Plot each epipolar line
         for a, b, c in el:
-            x = np.arange(0, 512)
+            x = np.arange(0, im.shape[1])
             y = -(a/b)*x - c/b
             # Threshold points so lines are bounded by images
             idx1 = y >= 0
-            idx2 = y <= 512
+            idx2 = y <= im.shape[0]
             idx = idx1 & idx2
             x = x[idx]
             y = y[idx]

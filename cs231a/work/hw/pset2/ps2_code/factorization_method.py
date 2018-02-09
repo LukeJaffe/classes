@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 import numpy as np
 from scipy.misc import imread
 import matplotlib.pyplot as plt
@@ -18,8 +20,37 @@ Returns:
     motion - the motion matrix
 '''
 def factorization_method(points_im1, points_im2):
-    # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    # Dump last column for now
+    xy1 = points_im1[:, :2]
+    xy2 = points_im2[:, :2]
+
+    # Compute centroids for points in each image
+    u1 = np.mean(xy1, axis=0)
+    u2 = np.mean(xy2, axis=0)
+
+    # Subtract centroids from points in each image
+    xy1c = xy1 - u1
+    xy2c = xy2 - u2
+
+    # Stack the observations from different cameras to produce D
+    #D = np.concatenate([xy1c.T, xy2c.T], axis=0)
+    D = np.concatenate([xy1c, xy2c], axis=0)
+
+    print np.linalg.matrix_rank(D)
+
+    # Perform SVD on D
+    U, b, V = np.linalg.svd(D)
+    print b
+    B = np.diag(b)
+
+    # Factorize D into motion and structure matrices
+    S = np.dot(np.sqrt(B), V)
+    M = np.dot(U, np.sqrt(B))
+
+    return S, M
+
+
+    
 
 if __name__ == '__main__':
     for im_set in ['data/set1', 'data/set1_subset']:

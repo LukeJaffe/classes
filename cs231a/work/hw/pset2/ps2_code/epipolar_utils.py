@@ -51,6 +51,7 @@ def compute_rectified_image(im, H):
     new_x -= offsets[0]
     new_y -= offsets[1]
     new_dims = (int(np.ceil(new_y.max()))+1,int(np.ceil(new_x.max()))+1)
+    print('new dims:', new_dims)
 
     H_inv = np.linalg.inv(H)
     new_image = np.zeros(new_dims)
