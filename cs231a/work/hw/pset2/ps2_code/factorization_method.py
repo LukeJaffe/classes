@@ -7,20 +7,20 @@ import scipy.io as sio
 import matplotlib.gridspec as gridspec
 from epipolar_utils import *
 
-'''
-FACTORIZATION_METHOD The Tomasi and Kanade Factorization Method to determine
-the 3D structure of the scene and the motion of the cameras.
-Arguments:
-    points_im1 - N points in the first image that match with points_im2
-    points_im2 - N points in the second image that match with points_im1
-
-    Both points_im1 and points_im2 are from the get_data_from_txt_file() method
-Returns:
-    structure - the structure matrix
-    motion - the motion matrix
-'''
 def factorization_method(points_im1, points_im2):
-    # Dump last column for now
+    '''
+    FACTORIZATION_METHOD The Tomasi and Kanade Factorization Method to determine
+    the 3D structure of the scene and the motion of the cameras.
+    Arguments:
+        points_im1 - N points in the first image that match with points_im2
+        points_im2 - N points in the second image that match with points_im1
+
+        Both points_im1 and points_im2 are from the get_data_from_txt_file() method
+    Returns:
+        structure - the structure matrix
+        motion - the motion matrix
+    '''
+    # Dump last column of 1s
     xy1 = points_im1[:, :2]
     xy2 = points_im2[:, :2]
 
@@ -33,23 +33,24 @@ def factorization_method(points_im1, points_im2):
     xy2c = xy2 - u2
 
     # Stack the observations from different cameras to produce D
-    #D = np.concatenate([xy1c.T, xy2c.T], axis=0)
-    D = np.concatenate([xy1c, xy2c], axis=0)
-
-    print np.linalg.matrix_rank(D)
+    D = np.concatenate([xy1c.T, xy2c.T], axis=0)
 
     # Perform SVD on D
-    U, b, V = np.linalg.svd(D)
-    print b
-    B = np.diag(b)
+    U, b, V = np.linalg.svd(D, full_matrices=False)
 
-    # Factorize D into motion and structure matrices
-    S = np.dot(np.sqrt(B), V)
-    M = np.dot(U, np.sqrt(B))
+    print 'Singular values:', b
 
-    return S, M
+    # Take columns and rows of U and V corresponding to 3 largest singular values
+    U3 = U[:, :3]
+    b3 = b[:3]
+    V3 = V[:3, :]
+    B3 = np.diag(b3)
 
+    # Factorize D into structure and motion matrices
+    structure = np.dot(np.sqrt(B3), V3)
+    motion = np.dot(U3, np.sqrt(B3))
 
+    return structure, motion
     
 
 if __name__ == '__main__':

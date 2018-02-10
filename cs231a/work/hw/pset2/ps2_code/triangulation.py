@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 import sys
 import numpy as np
 import os
@@ -9,18 +11,57 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sfm_utils import *
 
-'''
-ESTIMATE_INITIAL_RT from the Essential Matrix, we can compute 4 initial
-guesses of the relative RT between the two cameras
-Arguments:
-    E - the Essential Matrix between the two cameras
-Returns:
-    RT: A 4x3x4 tensor in which the 3x4 matrix RT[i,:,:] is one of the
-        four possible transformations
-'''
 def estimate_initial_RT(E):
-    # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    '''
+    ESTIMATE_INITIAL_RT from the Essential Matrix, we can compute 4 initial
+    guesses of the relative RT between the two cameras
+    Arguments:
+        E - the Essential Matrix between the two cameras
+    Returns:
+        RT: A 4x3x4 tensor in which the 3x4 matrix RT[i,:,:] is one of the
+            four possible transformations
+    '''
+    # Define Z and W
+    Z = np.array([
+        [0,  1, 0],
+        [-1, 0, 0],
+        [0,  0, 0]
+    ])
+    W = np.array([
+        [0, -1, 0],
+        [1, 0,  0],
+        [0, 0,  1]
+    ])
+
+    # Perform SVD on the essential matrix
+    U, d, Vt = np.linalg.svd(E)
+
+    # Compute M from U and Z
+    M = U.dot(Z).dot(U.T)
+
+    # Compute two possibilities for Q from U, W, V
+    Q1 = U.dot(W).dot(Vt)
+    Q2 = U.dot(W.T).dot(Vt)
+    
+    # Compute two possibilities for R from two Qs
+    R1 = np.linalg.det(Q1)*Q1
+    R2 = np.linalg.det(Q2)*Q2
+
+    # Compute two possibilities for T from U
+    T1 = U[:, 2]
+    T2 = -T1
+
+    # Compute the four combinations of RT
+    R1T1 = np.concatenate([R1, T1[:, np.newaxis]], axis=1)[np.newaxis, :, :]
+    R1T2 = np.concatenate([R1, T2[:, np.newaxis]], axis=1)[np.newaxis, :, :]
+    R2T1 = np.concatenate([R2, T1[:, np.newaxis]], axis=1)[np.newaxis, :, :]
+    R2T2 = np.concatenate([R2, T2[:, np.newaxis]], axis=1)[np.newaxis, :, :]
+
+    # Stack the four combinations of RT
+    RT = np.concatenate([R1T1, R1T2, R2T1, R2T2], axis=0)
+
+    return RT
+    
 
 '''
 LINEAR_ESTIMATE_3D_POINT given a corresponding points in different images,
@@ -32,8 +73,27 @@ Returns:
     point_3d - the 3D point
 '''
 def linear_estimate_3d_point(image_points, camera_matrices):
-    # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    unrolled_points = image_points.reshape(image_points.shape[0]*image_points.shape[1])
+    
+    m3 = camera_matrices[:, 2, :].repeat(2, axis=0)
+    m1 = camera_matrices[:, :2, :]
+    m1 = m1.reshape(m1.shape[0]*m1.shape[1], m1.shape[2])
+
+    # Construct A
+    A_list = []
+    for pi, m3i, m1i in zip(unrolled_points, m3, m1):
+        A_list.append((np.dot(pi, m3i) - m1i)[np.newaxis, :])
+    A = np.concatenate(A_list, axis=0)
+    print A.shape
+
+    # Solve AP = 0
+    U, d, Vt = np.linalg.svd(A)
+    P = Vt.T[:, -1]
+
+    print P
+
+    return P
+    
 
 '''
 REPROJECTION_ERROR given a 3D point and its corresponding points in the image
@@ -136,6 +196,7 @@ if __name__ == '__main__':
         camera_matrices.copy())
     expected_3d_point = np.array([0.6774, -1.1029, 4.6621])
     print "Difference: ", np.fabs(estimated_3d_point - expected_3d_point).sum()
+    import sys; sys.exit()
 
     # Part C: Calculating the reprojection error and its Jacobian
     print '-' * 80
