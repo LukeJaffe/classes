@@ -186,24 +186,20 @@ def compute_hog_features(im, pixels_in_cell, cells_in_block, nbins):
     Note: The final overall feature ndarray can be flattened if you want to use to
     train a classifier or use it as a feature vector.
     '''
-    # 1) Compute gradient for image
+    # Compute gradient for image
     angles, magnitudes = compute_gradient(im)
     H, W = angles.shape
+
     # Compute block size and check valid
     block_size = pixels_in_cell*cells_in_block
     if block_size % 2 != 0:
         raise Exception('Block size must be even, given block size: {}'.format(block_size))
-    # Compute stride and check valid
-    stride = block_size // 2
-    if W % stride != 0:
-        #print W, stride, W%stride
-        #raise Exception('Invalid block size, stride does not fit width.')
-        pass
-    if H % stride != 0:
-        #raise Exception('Invalid block size, stride does not fit height.')
-        pass
 
+    # Compute stride in pixels
+    stride = block_size // 2
     # Compute number of blocks that fit along width and height
+    # Accounts for sliding window
+    # Note that the edges are clipped, since they are not part of full blocks
     H_blocks = H // stride - 1
     W_blocks = W // stride - 1
     features = np.zeros((H_blocks, W_blocks, cells_in_block * cells_in_block * nbins))
@@ -211,14 +207,17 @@ def compute_hog_features(im, pixels_in_cell, cells_in_block, nbins):
     # Iterate through grads to build HoG
     for bi in range(H_blocks):
         for bj in range(W_blocks):
+            # Initialize feature array for current block
             block_features = np.zeros((cells_in_block, cells_in_block, nbins))
             for ci in range(cells_in_block):
                 for cj in range(cells_in_block):
+                    # Get indeces for the cell
                     i = (bi*stride)+(ci*pixels_in_cell)
                     j = (bj*stride)+(cj*pixels_in_cell)
-                    # Compute histogram for cell
+                    # Index angles and magnitudes for the cell
                     cell_angles = angles[i:i+pixels_in_cell, j:j+pixels_in_cell]
                     cell_magnitudes = magnitudes[i:i+pixels_in_cell, j:j+pixels_in_cell]
+                    # Compute histogram for cell
                     cell_histogram = generate_histogram(cell_angles, cell_magnitudes, nbins=nbins)
                     # Store histogram
                     block_features[ci, cj] = cell_histogram
@@ -291,4 +290,3 @@ if __name__ == '__main__':
     im = sio.imread('car.jpg', True)
     car_hog_feat = compute_hog_features(im, pixels_in_cell, cells_in_block, nbins)
     show_hog(im, car_hog_feat, figsize = (18,6))
-    plt.savefig('plots/3c.png')
