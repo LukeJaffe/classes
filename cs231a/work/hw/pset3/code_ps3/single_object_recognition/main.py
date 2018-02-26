@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import random
 from utils import *
 import math
+import sys
 
 
 '''
@@ -34,8 +35,25 @@ Returns:
         or descriptors2. 
 '''
 def match_keypoints(descriptors1, descriptors2, threshold = 0.7):
-    # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    # Initialize empty list of matches
+    match_list = []
+    for i, d in enumerate(descriptors1):
+        # Get dist of this element of descriptors1 and all elements
+        # of descriptors2
+        dist_arr = np.linalg.norm(descriptors2 - d, axis=1)
+        # Get the indeces sorted by distance
+        sorted_idx = dist_arr.argsort()
+        # Get the two minimum distances
+        d1, d2 = dist_arr[sorted_idx[:2]]
+        # Compute the distance ratio
+        r = d1 / d2
+        # If the ratio is less than the threshold, we accept this is a match
+        if r < threshold:
+            match_list.append([i, sorted_idx[0]])
+    # Convert the match list to ndarray
+    matches = np.array(match_list)
+
+    return matches
 
 
 '''
@@ -72,8 +90,15 @@ Returns:
 '''
 def refine_match(keypoints1, keypoints2, matches, reprojection_threshold = 10,
         num_iterations = 1000):
-    # TODO: Implement this method!
-    raise Exception('Not Implemented Error')
+    # Iterate num_iterations times
+    for _ in range(num_iterations):
+        # Sample 4 points from matches to compute homography
+        sample_idx = np.random.choice(range(len(matches)), 4, replace=False)
+        print sample_idx
+        sample_matches = matches[sample_idx]
+        print sample_matches
+        # Compute a homograpgy x' = Hx
+        sys.exit()
 
 
 '''
