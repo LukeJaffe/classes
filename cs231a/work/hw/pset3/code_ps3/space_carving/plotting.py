@@ -18,7 +18,7 @@ def axis_equal(ax, X, Y, Z):
     ax.set_zlim(mid_z - max_range, mid_z + max_range)
 
 
-def plot_surface(voxels, voxel_size = 0.1):
+def plot_surface(voxels, voxel_size = 0.1, title=None, save=False, path='plot.png'):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     # First grid the data
@@ -49,4 +49,9 @@ def plot_surface(voxels, voxel_size = 0.1):
     faces = marching_cubes[1]
     ax.plot_trisurf(verts[:, 0], verts[:,1], faces, verts[:, 2], lw=0, color='red')
     axis_equal(ax, verts[:, 0], verts[:,1], verts[:,2])
-    plt.show()
+    if title is not None:
+        plt.title(title)
+    if save:
+        plt.savefig(path)
+    else:
+        plt.show()
